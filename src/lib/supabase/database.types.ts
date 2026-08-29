@@ -192,6 +192,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_invitation: { Args: { p_token: string }; Returns: string }
       auth_company_ids: { Args: never; Returns: string[] }
       auth_membership_ids: { Args: never; Returns: string[] }
       auth_role: {
@@ -205,6 +206,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      company_members: {
+        Args: { p_company_id: string }
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          membership_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          sou_eu: boolean
+          status: Database["public"]["Enums"]["member_status"]
+        }[]
+      }
       create_company_with_owner: {
         Args: {
           p_cnpj?: string
@@ -213,6 +226,31 @@ export type Database = {
           p_timezone?: string
         }
         Returns: string
+      }
+      expire_stale_invitations: {
+        Args: { p_company_id: string }
+        Returns: number
+      }
+      invitation_preview: {
+        Args: { p_token: string }
+        Returns: {
+          company_name: string
+          email: string
+          expirado: boolean
+          full_name: string
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+        }[]
+      }
+      my_pending_invitations: {
+        Args: never
+        Returns: {
+          company_name: string
+          expires_at: string
+          full_name: string
+          role: Database["public"]["Enums"]["app_role"]
+          token: string
+        }[]
       }
       my_workspaces: {
         Args: never

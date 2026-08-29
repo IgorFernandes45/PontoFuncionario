@@ -3,7 +3,7 @@
 SaaS multi-tenant de gestão de escala e ponto eletrônico.
 Plano completo e roadmap: [`PontoEscala-Plano-Tecnico.md`](./PontoEscala-Plano-Tecnico.md).
 
-**Sprint atual: 0 — Fundação & infraestrutura.**
+**Sprint atual: 1 — Equipe & convites.** (Sprint 0 concluída.)
 
 ## Rodar localmente
 
@@ -31,20 +31,36 @@ App em <http://localhost:3000>. Os e-mails de magic link **não** saem de
 verdade em ambiente local: eles ficam no Inbucket, em
 <http://localhost:54324>.
 
-## Gate da Sprint 0
+## Gates
 
-O critério de saída é o isolamento entre empresas provado por teste, não por
-inspeção visual:
+O critério de saída de cada sprint é provado por teste, não por inspeção
+visual:
 
 ```bash
 npm run db:test
 ```
 
-O arquivo [`supabase/tests/database/rls_isolation.test.sql`](./supabase/tests/database/rls_isolation.test.sql)
-monta duas empresas com usuários distintos e verifica, entre outras coisas,
-que o dono da empresa A não enxerga nem altera nada da empresa B, que o
-funcionário não se promove a dono, e que um usuário sem vínculo não alcança
-dado nenhum.
+- [`rls_isolation.test.sql`](./supabase/tests/database/rls_isolation.test.sql)
+  (Sprint 0) monta duas empresas com usuários distintos e verifica que o dono
+  da empresa A não enxerga nem altera nada da empresa B, que gerente e
+  funcionário não se promovem a dono, e que um usuário sem vínculo não
+  alcança dado nenhum.
+- [`invitations.test.sql`](./supabase/tests/database/invitations.test.sql)
+  (Sprint 1) cobre o ciclo convite → cadastro → membro ativo: quem pode
+  convidar quem, convite vencido, convite reaproveitado, e o caso que mais
+  importa — o token vazado não serve para quem não é o destinatário.
+
+## E-mails de convite
+
+O template padrão do Supabase entrega a sessão no **fragmento** da URL
+(`#access_token=...`), que nunca chega ao servidor. Uma página renderizada no
+servidor não veria sessão nenhuma. Por isso
+[`supabase/templates/invite.html`](./supabase/templates/invite.html) usa
+`{{ .TokenHash }}` e aponta para `/auth/callback`, que troca o token por
+sessão no servidor.
+
+**Em produção esse template precisa ser configurado no dashboard do
+Supabase** — o `config.toml` só vale para o ambiente local.
 
 ## Portas
 

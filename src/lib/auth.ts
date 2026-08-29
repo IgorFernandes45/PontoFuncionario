@@ -35,7 +35,14 @@ export async function requireWorkspace(): Promise<{
   await requireUser();
 
   const workspaces = await listWorkspaces();
-  if (workspaces.length === 0) redirect("/onboarding");
+
+  if (workspaces.length === 0) {
+    // Sem empresa, mas convidado: a pessoa nao deve criar uma empresa nova
+    // sem antes ver o convite que a trouxe até aqui.
+    const supabase = await createClient();
+    const { data: convites } = await supabase.rpc("my_pending_invitations");
+    redirect(convites && convites.length > 0 ? "/convites" : "/onboarding");
+  }
 
   const cookieStore = await cookies();
   const preferred = cookieStore.get(ACTIVE_COMPANY_COOKIE)?.value;
