@@ -1,19 +1,11 @@
 import { requireManager } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { ROLE_LABEL, type AppRole, type MemberStatus } from "@/lib/types";
+import { ROLE_LABEL, type AppRole } from "@/lib/types";
 import ConviteForm from "./convite-form";
+import MembroLinha, { type Membro } from "./membro-linha";
 import { cancelarConvite, reenviarConvite } from "./actions";
 
 export const metadata = { title: "Equipe · PontoEscala" };
-
-type Membro = {
-  membership_id: string;
-  full_name: string;
-  email: string;
-  role: AppRole;
-  status: MemberStatus;
-  sou_eu: boolean;
-};
 
 export default async function EquipePage() {
   const { active } = await requireManager();
@@ -30,6 +22,7 @@ export default async function EquipePage() {
 
   const lista = (membros ?? []) as Membro[];
   const pendentes = convites ?? [];
+  const ativos = lista.filter((m) => m.status === "ativo").length;
 
   return (
     <>
@@ -38,8 +31,9 @@ export default async function EquipePage() {
           Equipe
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          {lista.length} {lista.length === 1 ? "pessoa" : "pessoas"} em{" "}
+          {ativos} {ativos === 1 ? "pessoa ativa" : "pessoas ativas"} em{" "}
           {active.company_name}
+          {lista.length > ativos && ` · ${lista.length - ativos} inativa(s)`}
         </p>
       </header>
 
@@ -92,43 +86,15 @@ export default async function EquipePage() {
         <h2 className="text-sm font-medium text-slate-900">Membros</h2>
         <ul className="mt-3 divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
           {lista.map((m) => (
-            <li
+            <MembroLinha
               key={m.membership_id}
-              className="flex items-center justify-between gap-3 px-4 py-3"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-slate-900">
-                  {m.full_name}
-                  {m.sou_eu && (
-                    <span className="ml-2 text-xs font-normal text-slate-400">
-                      você
-                    </span>
-                  )}
-                </p>
-                <p className="truncate text-xs text-slate-500">{m.email}</p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Etiqueta texto={ROLE_LABEL[m.role]} />
-                {m.status !== "ativo" && <Etiqueta texto={m.status} alerta />}
-              </div>
-            </li>
+              membro={m}
+              souDono={active.role === "dono"}
+            />
           ))}
         </ul>
       </section>
-    </>
-  );
-}
 
-function Etiqueta({ texto, alerta }: { texto: string; alerta?: boolean }) {
-  return (
-    <span
-      className={`rounded-full px-2 py-0.5 text-xs capitalize ${
-        alerta
-          ? "bg-amber-50 text-amber-700"
-          : "bg-slate-100 text-slate-600"
-      }`}
-    >
-      {texto}
-    </span>
+    </>
   );
 }

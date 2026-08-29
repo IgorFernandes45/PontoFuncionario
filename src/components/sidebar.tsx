@@ -12,6 +12,7 @@ const ITENS: Item[] = [
   { href: "/equipe", label: "Equipe", gestao: true },
   { href: "/escala", label: "Escala", gestao: true },
   { href: "/relatorios", label: "Relatórios", gestao: true },
+  { href: "/configuracoes/turnos", label: "Configurações", gestao: true },
   { href: "/minha-escala", label: "Minha escala", gestao: false },
   { href: "/bater-ponto", label: "Bater ponto", gestao: false },
 ];
@@ -58,7 +59,10 @@ export default function Sidebar({
 
       <nav className="flex-1 space-y-1 p-3">
         {visiveis.map((item) => {
-          const ativo = pathname === item.href;
+          const ativo =
+            pathname === item.href ||
+            (item.href.startsWith("/configuracoes") &&
+              pathname.startsWith("/configuracoes"));
           return (
             <Link
               key={item.href}

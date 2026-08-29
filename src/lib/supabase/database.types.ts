@@ -149,6 +149,88 @@ export type Database = {
           },
         ]
       }
+      location_wifi: {
+        Row: {
+          bssid: string | null
+          created_at: string
+          id: string
+          location_id: string
+          ssid: string
+        }
+        Insert: {
+          bssid?: string | null
+          created_at?: string
+          id?: string
+          location_id: string
+          ssid: string
+        }
+        Update: {
+          bssid?: string | null
+          created_at?: string
+          id?: string
+          location_id?: string
+          ssid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "location_wifi_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locations: {
+        Row: {
+          active: boolean
+          address: string | null
+          company_id: string
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          method: Database["public"]["Enums"]["punch_method"]
+          name: string
+          radius_m: number
+          require_selfie: boolean
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          method?: Database["public"]["Enums"]["punch_method"]
+          name: string
+          radius_m?: number
+          require_selfie?: boolean
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          method?: Database["public"]["Enums"]["punch_method"]
+          name?: string
+          radius_m?: number
+          require_selfie?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           company_id: string
@@ -180,6 +262,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "memberships_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_templates: {
+        Row: {
+          active: boolean
+          break_minutes: number
+          color: string
+          company_id: string
+          created_at: string
+          end_time: string
+          id: string
+          key: string
+          label: string
+          start_time: string
+        }
+        Insert: {
+          active?: boolean
+          break_minutes?: number
+          color?: string
+          company_id: string
+          created_at?: string
+          end_time: string
+          id?: string
+          key: string
+          label: string
+          start_time: string
+        }
+        Update: {
+          active?: boolean
+          break_minutes?: number
+          color?: string
+          company_id?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          key?: string
+          label?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_templates_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -242,6 +371,10 @@ export type Database = {
           status: string
         }[]
       }
+      member_has_history: {
+        Args: { p_membership_id: string }
+        Returns: boolean
+      }
       my_pending_invitations: {
         Args: never
         Returns: {
@@ -265,10 +398,43 @@ export type Database = {
           trial_ends_at: string
         }[]
       }
+      remove_member: { Args: { p_membership_id: string }; Returns: undefined }
+      seed_default_shifts: {
+        Args: { p_company_id: string }
+        Returns: undefined
+      }
+      set_member_role: {
+        Args: {
+          p_membership_id: string
+          p_role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: undefined
+      }
+      set_member_status: {
+        Args: {
+          p_membership_id: string
+          p_status: Database["public"]["Enums"]["member_status"]
+        }
+        Returns: undefined
+      }
+      shift_duration_minutes: {
+        Args: { p_end: string; p_start: string }
+        Returns: number
+      }
+      update_company: {
+        Args: {
+          p_cnpj?: string
+          p_company_id: string
+          p_name: string
+          p_timezone: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "dono" | "gerente" | "funcionario"
       member_status: "ativo" | "pendente" | "inativo"
+      punch_method: "gps" | "wifi" | "ambos"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -401,6 +567,7 @@ export const Constants = {
     Enums: {
       app_role: ["dono", "gerente", "funcionario"],
       member_status: ["ativo", "pendente", "inativo"],
+      punch_method: ["gps", "wifi", "ambos"],
     },
   },
 } as const

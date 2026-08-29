@@ -3,7 +3,7 @@
 SaaS multi-tenant de gestão de escala e ponto eletrônico.
 Plano completo e roadmap: [`PontoEscala-Plano-Tecnico.md`](./PontoEscala-Plano-Tecnico.md).
 
-**Sprint atual: 1 — Equipe & convites.** (Sprint 0 concluída.)
+**Sprint atual: 2 — Cadastros: membros, turnos e unidades.** (Sprints 0 e 1 concluídas.)
 
 ## Rodar localmente
 
@@ -49,6 +49,10 @@ npm run db:test
   (Sprint 1) cobre o ciclo convite → cadastro → membro ativo: quem pode
   convidar quem, convite vencido, convite reaproveitado, e o caso que mais
   importa — o token vazado não serve para quem não é o destinatário.
+- [`cadastros.test.sql`](./supabase/tests/database/cadastros.test.sql)
+  (Sprint 2) cobre gestão de membros, turnos e unidades: quem promove quem,
+  intervalo que não cabe na jornada, raio de GPS fora do razoável, e o turno
+  que vira o dia.
 
 ## E-mails de convite
 
@@ -90,6 +94,15 @@ Mexeu em migration:
 ```bash
 npm run db:reset && npm run db:test
 ```
+
+Duas armadilhas do ambiente, aprendidas na marra:
+
+- **Não rode `next build` com o `next dev` de pé.** Os dois disputam o
+  `.next` e o dev fica inacessível.
+- **Não canalize a saída do `next dev` por um pipe que possa fechar.** O Next
+  escreve no stdout a cada request; se o leitor sumir, ele morre com
+  `EPIPE: broken pipe` numa exceção não tratada. Redirecione para arquivo:
+  `npm run dev > .next-dev.log 2>&1 &`.
 
 ## Onde está o quê
 
