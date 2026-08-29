@@ -454,6 +454,7 @@ export type Database = {
           token: string
         }[]
       }
+      my_schedule_updated_at: { Args: never; Returns: string }
       my_workspaces: {
         Args: never
         Returns: {
@@ -485,6 +486,26 @@ export type Database = {
           shift_label: string
           start_time: string
           work_date: string
+        }[]
+      }
+      schedule_coverage: {
+        Args: { p_company_id: string; p_from: string; p_to: string }
+        Returns: {
+          color: string
+          pessoas: number
+          shift_key: string
+          shift_label: string
+          work_date: string
+        }[]
+      }
+      schedule_summary: {
+        Args: { p_company_id: string; p_from: string; p_to: string }
+        Returns: {
+          dias_com_turno: number
+          dias_de_folga: number
+          full_name: string
+          membership_id: string
+          minutos_previstos: number
         }[]
       }
       seed_default_shifts: {

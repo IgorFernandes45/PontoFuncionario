@@ -10,6 +10,7 @@ import {
 } from "@/lib/datas";
 import GradeSemana, { type Celula, type Turno } from "./grade-semana";
 import CopiarSemana from "./copiar-semana";
+import ResumoSemana, { type ResumoLinha } from "./resumo-semana";
 
 export const metadata = { title: "Escala · PontoEscala" };
 
@@ -29,7 +30,7 @@ export default async function EscalaPage({
   const inicio = inicioSemana(semanaPedida ?? hoje);
   const dias = diasDaSemana(inicio);
 
-  const [{ data: escala }, { data: membros }, { data: turnos }] =
+  const [{ data: escala }, { data: membros }, { data: turnos }, { data: resumo }] =
     await Promise.all([
       supabase.rpc("resolved_schedule", {
         p_company_id: active.company_id,
@@ -43,6 +44,11 @@ export default async function EscalaPage({
         .eq("company_id", active.company_id)
         .eq("active", true)
         .order("start_time"),
+      supabase.rpc("schedule_summary", {
+        p_company_id: active.company_id,
+        p_from: inicio,
+        p_to: dias[6],
+      }),
     ]);
 
   const ativos = ((membros ?? []) as Membro[]).filter(
@@ -90,6 +96,18 @@ export default async function EscalaPage({
         >
           Escala fixa semanal
         </Link>
+        <Link
+          href="/escala/mes"
+          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+        >
+          Ver o mês
+        </Link>
+        <Link
+          href={`/escala-impressao/${inicio}`}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+        >
+          Imprimir
+        </Link>
       </div>
 
       <GradeSemana
@@ -102,6 +120,8 @@ export default async function EscalaPage({
         celulas={(escala ?? []) as Celula[]}
         turnos={listaTurnos}
       />
+
+      <ResumoSemana linhas={(resumo ?? []) as ResumoLinha[]} />
 
       <p className="mt-4 text-xs text-slate-400">
         Um dia sem exceção segue a escala fixa. Marcar turno ou folga aqui vale

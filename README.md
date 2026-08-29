@@ -3,7 +3,7 @@
 SaaS multi-tenant de gestão de escala e ponto eletrônico.
 Plano completo e roadmap: [`PontoEscala-Plano-Tecnico.md`](./PontoEscala-Plano-Tecnico.md).
 
-**Sprint atual: 3 — Escala: montar e persistir.** (Sprints 0 a 2 concluídas.)
+**Sprint atual: 4 — Escala: visões por papel.** (Sprints 0 a 3 concluídas.)
 
 ## Rodar localmente
 
@@ -57,6 +57,10 @@ npm run db:test
   (Sprint 3) cobre os dois modelos de escala e a precedência: a avulsa
   sobrepõe a fixa no dia, removê-la faz a fixa voltar, folga marcada tira o
   dia da conta, e repetir a semana não congela o que vinha do padrão.
+- [`visoes.test.sql`](./supabase/tests/database/visoes.test.sql)
+  (Sprint 4) cobre o resumo e a cobertura: horas previstas são líquidas,
+  turno noturno conta 7h e não valor negativo, folga não soma minuto, e cada
+  mudança de escala deixa rastro com o turno de antes e o de depois.
 
 ## E-mails de convite
 
