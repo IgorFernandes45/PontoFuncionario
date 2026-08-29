@@ -3,7 +3,7 @@
 SaaS multi-tenant de gestão de escala e ponto eletrônico.
 Plano completo e roadmap: [`PontoEscala-Plano-Tecnico.md`](./PontoEscala-Plano-Tecnico.md).
 
-**Sprint atual: 2 — Cadastros: membros, turnos e unidades.** (Sprints 0 e 1 concluídas.)
+**Sprint atual: 3 — Escala: montar e persistir.** (Sprints 0 a 2 concluídas.)
 
 ## Rodar localmente
 
@@ -53,6 +53,10 @@ npm run db:test
   (Sprint 2) cobre gestão de membros, turnos e unidades: quem promove quem,
   intervalo que não cabe na jornada, raio de GPS fora do razoável, e o turno
   que vira o dia.
+- [`escala.test.sql`](./supabase/tests/database/escala.test.sql)
+  (Sprint 3) cobre os dois modelos de escala e a precedência: a avulsa
+  sobrepõe a fixa no dia, removê-la faz a fixa voltar, folga marcada tira o
+  dia da conta, e repetir a semana não congela o que vinha do padrão.
 
 ## E-mails de convite
 

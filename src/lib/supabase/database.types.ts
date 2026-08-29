@@ -269,6 +269,71 @@ export type Database = {
           },
         ]
       }
+      schedule_entries: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          location_id: string | null
+          membership_id: string
+          shift_key: string | null
+          weekday: number | null
+          work_date: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          location_id?: string | null
+          membership_id: string
+          shift_key?: string | null
+          weekday?: number | null
+          work_date?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          location_id?: string | null
+          membership_id?: string
+          shift_key?: string | null
+          weekday?: number | null
+          work_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entry_shift_fk"
+            columns: ["company_id", "shift_key"]
+            isOneToOne: false
+            referencedRelation: "shift_templates"
+            referencedColumns: ["company_id", "key"]
+          },
+          {
+            foreignKeyName: "schedule_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_entries_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_entries_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shift_templates: {
         Row: {
           active: boolean
@@ -347,6 +412,10 @@ export type Database = {
           status: Database["public"]["Enums"]["member_status"]
         }[]
       }
+      copy_week: {
+        Args: { p_company_id: string; p_destino: string; p_origem: string }
+        Returns: number
+      }
       create_company_with_owner: {
         Args: {
           p_cnpj?: string
@@ -399,8 +468,37 @@ export type Database = {
         }[]
       }
       remove_member: { Args: { p_membership_id: string }; Returns: undefined }
+      resolved_schedule: {
+        Args: { p_company_id: string; p_from: string; p_to: string }
+        Returns: {
+          break_minutes: number
+          color: string
+          end_time: string
+          entry_id: string
+          full_name: string
+          location_id: string
+          location_name: string
+          member_role: Database["public"]["Enums"]["app_role"]
+          membership_id: string
+          origem: string
+          shift_key: string
+          shift_label: string
+          start_time: string
+          work_date: string
+        }[]
+      }
       seed_default_shifts: {
         Args: { p_company_id: string }
+        Returns: undefined
+      }
+      set_day_shift: {
+        Args: {
+          p_date: string
+          p_limpar?: boolean
+          p_location_id?: string
+          p_membership_id: string
+          p_shift_key?: string
+        }
         Returns: undefined
       }
       set_member_role: {
@@ -414,6 +512,15 @@ export type Database = {
         Args: {
           p_membership_id: string
           p_status: Database["public"]["Enums"]["member_status"]
+        }
+        Returns: undefined
+      }
+      set_weekday_shift: {
+        Args: {
+          p_location_id?: string
+          p_membership_id: string
+          p_shift_key?: string
+          p_weekday: number
         }
         Returns: undefined
       }
