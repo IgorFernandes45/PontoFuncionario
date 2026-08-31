@@ -56,6 +56,7 @@ export default async function BaterPontoPage() {
       <Relogio
         estado={st}
         timezone={active.timezone}
+        companyId={active.company_id}
         batidasDeHoje={(batidas ?? []) as Batida[]}
       />
       <PedirCorrecao hoje={hoje} />

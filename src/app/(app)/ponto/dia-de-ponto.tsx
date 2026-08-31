@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { ESTADO_VAZIO } from "@/lib/form-state";
 import { anularBatida, corrigirBatida, incluirBatida } from "./actions";
+import VerSelfie from "./ver-selfie";
 
 export type Batida = {
   id: string;
@@ -14,6 +15,7 @@ export type Batida = {
   origin: string;
   distance_m: number | null;
   atrasado: boolean;
+  selfie_path: string | null;
 };
 
 export type Membro = { membership_id: string; full_name: string };
@@ -149,6 +151,7 @@ function LinhaMembro({
                     )}
                     {b.atrasado && " · sincronizada em atraso"}
                   </p>
+                  {b.selfie_path && <VerSelfie caminho={b.selfie_path} />}
                 </div>
                 <button
                   type="button"

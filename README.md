@@ -69,6 +69,10 @@ npm run db:test
 - [`correcoes.test.sql`](./supabase/tests/database/correcoes.test.sql)
   (Sprint 6) responde a outras duas: a correção altera o registro original?
   (não pode) E a falta continua se confundindo com atestado? (não pode).
+- [`arquivos.test.sql`](./supabase/tests/database/arquivos.test.sql)
+  cobre selfie e anexo. O caminho do arquivo é quem carrega a autorização, e
+  nome de objeto no Storage é texto livre — então testa o caminho forjado, o
+  caminho torto e o acesso cruzado entre empresas.
 
 ## E-mails de convite
 

@@ -17,7 +17,7 @@ export default async function AusenciasPage() {
   const [{ data: ausencias }, { data: membros }] = await Promise.all([
     supabase
       .from("absences")
-      .select("id, membership_id, kind, starts_on, ends_on, note")
+      .select("id, membership_id, kind, starts_on, ends_on, note, attachment_path")
       .eq("company_id", active.company_id)
       .gte("ends_on", hoje.slice(0, 4) + "-01-01")
       .order("starts_on", { ascending: false }),
@@ -44,6 +44,7 @@ export default async function AusenciasPage() {
         ausencias={(ausencias ?? []) as Ausencia[]}
         membros={ativos}
         hoje={hoje}
+        companyId={active.company_id}
       />
     </>
   );

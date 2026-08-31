@@ -8,6 +8,8 @@ import {
   sincronizar,
   type BatidaPendente,
 } from "@/lib/fila-ponto";
+import { createClient } from "@/lib/supabase/client";
+import { reduzirImagem } from "@/lib/imagem";
 
 export type EstadoPonto = {
   membership_id: string;
@@ -65,13 +67,16 @@ function distancia(
 export default function Relogio({
   estado,
   timezone,
+  companyId,
   batidasDeHoje,
 }: {
   estado: EstadoPonto;
   timezone: string;
+  companyId: string;
   batidasDeHoje: Batida[];
 }) {
   const router = useRouter();
+  const [foto, setFoto] = useState<File | null>(null);
   const [fase, setFase] = useState<Fase>({ nome: "parado" });
   const [naFila, setNaFila] = useState(0);
   const [posicao, setPosicao] = useState<{
@@ -168,12 +173,48 @@ export default function Relogio({
       });
     }
 
+    // A selfie sobe ANTES da batida porque o servidor recusa o registro sem
+    // ela. Se a batida for recusada depois (fora do raio), sobra uma foto
+    // órfã no bucket — preço pequeno perto de inverter a ordem e ter de
+    // validar duas vezes.
+    let selfiePath: string | undefined;
+    if (estado.require_selfie) {
+      if (!foto) {
+        setFase({
+          nome: "erro",
+          texto: "Esta unidade exige foto. Toque em “Tirar foto” antes de bater o ponto.",
+        });
+        return;
+      }
+      try {
+        setFase({ nome: "enviando" });
+        const menor = await reduzirImagem(foto);
+        const caminho = `${companyId}/${estado.membership_id}/${crypto.randomUUID()}.jpg`;
+        const supabase = createClient();
+        const { error } = await supabase.storage
+          .from("selfies")
+          .upload(caminho, menor, { contentType: "image/jpeg" });
+        if (error) {
+          setFase({ nome: "erro", texto: `Não foi possível enviar a foto: ${error.message}` });
+          return;
+        }
+        selfiePath = caminho;
+      } catch {
+        setFase({
+          nome: "erro",
+          texto: "Não foi possível preparar a foto. Tente de novo.",
+        });
+        return;
+      }
+    }
+
     const carga = {
       tipo,
       lat: pos.coords.latitude,
       lng: pos.coords.longitude,
       accuracy: pos.coords.accuracy,
       punched_at: new Date().toISOString(),
+      selfie_path: selfiePath,
     };
 
     setFase({ nome: "enviando" });
@@ -187,6 +228,7 @@ export default function Relogio({
 
       if (r.ok) {
         const corpo = await r.json();
+        setFoto(null);
         setFase({
           nome: "ok",
           texto: `${ROTULO[tipo]} registrada${
@@ -200,6 +242,14 @@ export default function Relogio({
       const corpo = await r.json().catch(() => ({ erro: "Falha ao registrar" }));
       setFase({ nome: "erro", texto: corpo.erro });
     } catch {
+      if (estado.require_selfie) {
+        setFase({
+          nome: "erro",
+          texto:
+            "Sem internet, e esta unidade exige foto. A foto não cabe na fila local — procure sinal ou peça o registro ao gestor.",
+        });
+        return;
+      }
       // Sem rede: guarda com o horário real e sobe depois.
       const pendente: BatidaPendente = {
         id_local: crypto.randomUUID(),
@@ -266,10 +316,30 @@ export default function Relogio({
         </div>
 
         {estado.require_selfie && (
-          <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-            Esta unidade exige foto no registro. A captura entra junto com o
-            app instalável — por ora, peça o registro ao gestor.
-          </p>
+          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-left">
+            <p className="text-xs font-medium text-slate-700">
+              Esta unidade exige foto no registro
+            </p>
+            <label className="mt-2 flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-3 py-3 text-sm text-slate-600 hover:bg-slate-100">
+              <input
+                type="file"
+                accept="image/*"
+                capture="user"
+                className="sr-only"
+                onChange={(e) => setFoto(e.target.files?.[0] ?? null)}
+              />
+              {foto ? `Foto pronta (${Math.round(foto.size / 1024)} KB)` : "Tirar foto"}
+            </label>
+            {foto && (
+              <button
+                type="button"
+                onClick={() => setFoto(null)}
+                className="mt-2 text-xs text-slate-500 underline-offset-2 hover:underline"
+              >
+                Tirar outra
+              </button>
+            )}
+          </div>
         )}
 
         {posicao && (

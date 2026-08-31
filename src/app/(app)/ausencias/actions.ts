@@ -24,6 +24,7 @@ export async function salvarAusencia(
   const inicio = String(formData.get("starts_on") ?? "");
   const fim = String(formData.get("ends_on") ?? "");
   const nota = String(formData.get("note") ?? "").trim();
+  const anexo = String(formData.get("attachment_path") ?? "").trim();
 
   if (!inicio || !fim) return { erro: "Informe o período.", ok: null };
   if (fim < inicio) {
@@ -44,6 +45,7 @@ export async function salvarAusencia(
     starts_on: inicio,
     ends_on: fim,
     note: nota || null,
+    attachment_path: anexo || null,
   });
 
   if (error) return { erro: error.message, ok: null };

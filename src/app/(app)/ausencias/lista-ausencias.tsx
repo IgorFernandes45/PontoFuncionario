@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { ESTADO_VAZIO } from "@/lib/form-state";
 import { salvarAusencia, excluirAusencia } from "./actions";
+import { createClient } from "@/lib/supabase/client";
 
 export type MembroSimples = { membership_id: string; full_name: string };
 
@@ -14,6 +15,7 @@ export type Ausencia = {
   starts_on: string;
   ends_on: string;
   note: string | null;
+  attachment_path: string | null;
 };
 
 const TIPOS: [string, string][] = [
@@ -39,13 +41,36 @@ export default function ListaAusencias({
   ausencias,
   membros,
   hoje,
+  companyId,
 }: {
   ausencias: Ausencia[];
   membros: MembroSimples[];
   hoje: string;
+  companyId: string;
 }) {
   const [state, action] = useActionState(salvarAusencia, ESTADO_VAZIO);
   const [tipo, setTipo] = useState("atestado");
+  const [anexo, setAnexo] = useState<string>("");
+  const [enviandoAnexo, setEnviandoAnexo] = useState(false);
+  const [erroAnexo, setErroAnexo] = useState<string | null>(null);
+
+  /** O arquivo sobe direto para o bucket; o formulário só carrega o caminho. */
+  async function enviarAnexo(arquivo: File) {
+    setErroAnexo(null);
+    setEnviandoAnexo(true);
+    const extensao = arquivo.name.split(".").pop()?.toLowerCase() ?? "bin";
+    const caminho = `${companyId}/${crypto.randomUUID()}.${extensao}`;
+    const supabase = createClient();
+    const { error } = await supabase.storage
+      .from("anexos")
+      .upload(caminho, arquivo, { contentType: arquivo.type });
+    setEnviandoAnexo(false);
+    if (error) {
+      setErroAnexo(error.message);
+      return;
+    }
+    setAnexo(caminho);
+  }
   const nomePorId = new Map(membros.map((m) => [m.membership_id, m.full_name]));
 
   return (
@@ -130,6 +155,35 @@ export default function ListaAusencias({
           />
         </label>
 
+        <div className="sm:col-span-2">
+          <span className="mb-1 block text-xs font-medium text-slate-600">
+            Anexo (opcional)
+          </span>
+          <input type="hidden" name="attachment_path" value={anexo} />
+          <label className="flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">
+            <input
+              type="file"
+              accept="image/*,application/pdf"
+              className="sr-only"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void enviarAnexo(f);
+              }}
+            />
+            {enviandoAnexo
+              ? "Enviando…"
+              : anexo
+                ? "Arquivo anexado"
+                : "Anexar atestado (foto ou PDF)"}
+          </label>
+          {erroAnexo && (
+            <p className="mt-1 text-xs text-red-700">{erroAnexo}</p>
+          )}
+          <p className="mt-1 text-xs text-slate-400">
+            Fica num bucket privado, visível só para quem administra.
+          </p>
+        </div>
+
         {state.erro && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2">
             {state.erro}
@@ -171,6 +225,7 @@ export default function ListaAusencias({
                   {a.ends_on !== a.starts_on && ` até ${dataBR(a.ends_on)}`}
                   {a.note && ` · ${a.note}`}
                 </p>
+                {a.attachment_path && <VerAnexo caminho={a.attachment_path} />}
               </div>
               <form action={excluirAusencia}>
                 <input type="hidden" name="id" value={a.id} />
@@ -183,6 +238,41 @@ export default function ListaAusencias({
         </ul>
       )}
     </div>
+  );
+}
+
+function VerAnexo({ caminho }: { caminho: string }) {
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  // Bucket privado: o link é assinado na hora e vale poucos minutos.
+  async function abrir() {
+    setCarregando(true);
+    setErro(null);
+    const supabase = createClient();
+    const { data, error } = await supabase.storage
+      .from("anexos")
+      .createSignedUrl(caminho, 120);
+    setCarregando(false);
+    if (error || !data) {
+      setErro("Não foi possível abrir o anexo.");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={abrir}
+        disabled={carregando}
+        className="mt-0.5 text-xs text-blue-600 underline-offset-2 hover:underline disabled:opacity-60"
+      >
+        {carregando ? "Abrindo…" : "Ver anexo"}
+      </button>
+      {erro && <span className="ml-2 text-xs text-red-700">{erro}</span>}
+    </>
   );
 }
 
