@@ -3,7 +3,7 @@
 SaaS multi-tenant de gestão de escala e ponto eletrônico.
 Plano completo e roadmap: [`PontoEscala-Plano-Tecnico.md`](./PontoEscala-Plano-Tecnico.md).
 
-**Sprint atual: 4 — Escala: visões por papel.** (Sprints 0 a 3 concluídas.)
+**Sprint atual: 5 — Ponto por GPS.** (Sprints 0 a 4 concluídas.)
 
 ## Rodar localmente
 
@@ -61,6 +61,11 @@ npm run db:test
   (Sprint 4) cobre o resumo e a cobertura: horas previstas são líquidas,
   turno noturno conta 7h e não valor negativo, folga não soma minuto, e cada
   mudança de escala deixa rastro com o turno de antes e o de depois.
+- [`ponto.test.sql`](./supabase/tests/database/ponto.test.sql)
+  (Sprint 5) responde a uma pergunta: um funcionário com acesso total ao
+  próprio navegador consegue registrar um ponto que não deveria valer? Cobre
+  raio, precisão de GPS, sequência, horário informado pelo cliente, e a
+  ausência de qualquer caminho de escrita pelo cliente.
 
 ## E-mails de convite
 

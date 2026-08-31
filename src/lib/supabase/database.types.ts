@@ -269,6 +269,110 @@ export type Database = {
           },
         ]
       }
+      punches: {
+        Row: {
+          accuracy_m: number | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          distance_m: number | null
+          id: string
+          justification: string | null
+          lat: number | null
+          lng: number | null
+          location_id: string | null
+          membership_id: string
+          origin: Database["public"]["Enums"]["punch_origin"]
+          punched_at: string
+          replaces_punch_id: string | null
+          selfie_path: string | null
+          sincronizado_em: string | null
+          type: Database["public"]["Enums"]["punch_type"]
+          verified: boolean
+          verify_method: Database["public"]["Enums"]["punch_method"] | null
+          voided: boolean
+          wifi_ssid: string | null
+          work_date: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          distance_m?: number | null
+          id?: string
+          justification?: string | null
+          lat?: number | null
+          lng?: number | null
+          location_id?: string | null
+          membership_id: string
+          origin?: Database["public"]["Enums"]["punch_origin"]
+          punched_at: string
+          replaces_punch_id?: string | null
+          selfie_path?: string | null
+          sincronizado_em?: string | null
+          type: Database["public"]["Enums"]["punch_type"]
+          verified?: boolean
+          verify_method?: Database["public"]["Enums"]["punch_method"] | null
+          voided?: boolean
+          wifi_ssid?: string | null
+          work_date: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          distance_m?: number | null
+          id?: string
+          justification?: string | null
+          lat?: number | null
+          lng?: number | null
+          location_id?: string | null
+          membership_id?: string
+          origin?: Database["public"]["Enums"]["punch_origin"]
+          punched_at?: string
+          replaces_punch_id?: string | null
+          selfie_path?: string | null
+          sincronizado_em?: string | null
+          type?: Database["public"]["Enums"]["punch_type"]
+          verified?: boolean
+          verify_method?: Database["public"]["Enums"]["punch_method"] | null
+          voided?: boolean
+          wifi_ssid?: string | null
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "punches_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "punches_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "punches_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "punches_replaces_punch_id_fkey"
+            columns: ["replaces_punch_id"]
+            isOneToOne: false
+            referencedRelation: "punches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedule_entries: {
         Row: {
           company_id: string
@@ -387,6 +491,10 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string }
+      allowed_punch_types: {
+        Args: { p_membership_id: string; p_work_date: string }
+        Returns: Database["public"]["Enums"]["punch_type"][]
+      }
       auth_company_ids: { Args: never; Returns: string[] }
       auth_membership_ids: { Args: never; Returns: string[] }
       auth_role: {
@@ -425,8 +533,28 @@ export type Database = {
         }
         Returns: string
       }
+      effective_punches: {
+        Args: { p_company_id: string; p_from: string; p_to: string }
+        Returns: {
+          accuracy_m: number
+          atrasado: boolean
+          distance_m: number
+          full_name: string
+          id: string
+          membership_id: string
+          origin: Database["public"]["Enums"]["punch_origin"]
+          punched_at: string
+          selfie_path: string
+          type: Database["public"]["Enums"]["punch_type"]
+          work_date: string
+        }[]
+      }
       expire_stale_invitations: {
         Args: { p_company_id: string }
+        Returns: number
+      }
+      haversine_m: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
       invitation_preview: {
@@ -439,6 +567,10 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
           status: string
         }[]
+      }
+      last_punch_of_day: {
+        Args: { p_membership_id: string; p_work_date: string }
+        Returns: Database["public"]["Enums"]["punch_type"]
       }
       member_has_history: {
         Args: { p_membership_id: string }
@@ -454,6 +586,21 @@ export type Database = {
           token: string
         }[]
       }
+      my_punch_state: {
+        Args: { p_company_id: string }
+        Returns: {
+          location_lat: number
+          location_lng: number
+          location_name: string
+          membership_id: string
+          permitidos: Database["public"]["Enums"]["punch_type"][]
+          radius_m: number
+          require_selfie: boolean
+          ultimo_em: string
+          ultimo_tipo: Database["public"]["Enums"]["punch_type"]
+          work_date: string
+        }[]
+      }
       my_schedule_updated_at: { Args: never; Returns: string }
       my_workspaces: {
         Args: never
@@ -466,6 +613,24 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
           timezone: string
           trial_ends_at: string
+        }[]
+      }
+      register_punch: {
+        Args: {
+          p_accuracy_m?: number
+          p_lat?: number
+          p_lng?: number
+          p_membership_id: string
+          p_punched_at?: string
+          p_selfie_path?: string
+          p_type: Database["public"]["Enums"]["punch_type"]
+        }
+        Returns: {
+          atrasado: boolean
+          distance_m: number
+          punch_id: string
+          verified: boolean
+          work_date: string
         }[]
       }
       remove_member: { Args: { p_membership_id: string }; Returns: undefined }
@@ -563,6 +728,8 @@ export type Database = {
       app_role: "dono" | "gerente" | "funcionario"
       member_status: "ativo" | "pendente" | "inativo"
       punch_method: "gps" | "wifi" | "ambos"
+      punch_origin: "app" | "ajuste_manual" | "importacao"
+      punch_type: "entrada" | "saida" | "intervalo_inicio" | "intervalo_fim"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -696,6 +863,8 @@ export const Constants = {
       app_role: ["dono", "gerente", "funcionario"],
       member_status: ["ativo", "pendente", "inativo"],
       punch_method: ["gps", "wifi", "ambos"],
+      punch_origin: ["app", "ajuste_manual", "importacao"],
+      punch_type: ["entrada", "saida", "intervalo_inicio", "intervalo_fim"],
     },
   },
 } as const
