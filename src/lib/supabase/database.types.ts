@@ -34,6 +34,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      absences: {
+        Row: {
+          attachment_path: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          ends_on: string
+          id: string
+          kind: Database["public"]["Enums"]["absence_kind"]
+          membership_id: string | null
+          note: string | null
+          starts_on: string
+        }
+        Insert: {
+          attachment_path?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          ends_on: string
+          id?: string
+          kind: Database["public"]["Enums"]["absence_kind"]
+          membership_id?: string | null
+          note?: string | null
+          starts_on: string
+        }
+        Update: {
+          attachment_path?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          ends_on?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["absence_kind"]
+          membership_id?: string | null
+          note?: string | null
+          starts_on?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "absences_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "absences_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -269,6 +323,76 @@ export type Database = {
           },
         ]
       }
+      punch_requests: {
+        Row: {
+          company_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          id: string
+          kind: Database["public"]["Enums"]["request_kind"]
+          membership_id: string
+          punch_id: string | null
+          reason: string
+          requested_at: string | null
+          requested_type: Database["public"]["Enums"]["punch_type"] | null
+          status: Database["public"]["Enums"]["request_status"]
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["request_kind"]
+          membership_id: string
+          punch_id?: string | null
+          reason: string
+          requested_at?: string | null
+          requested_type?: Database["public"]["Enums"]["punch_type"] | null
+          status?: Database["public"]["Enums"]["request_status"]
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["request_kind"]
+          membership_id?: string
+          punch_id?: string | null
+          reason?: string
+          requested_at?: string | null
+          requested_type?: Database["public"]["Enums"]["punch_type"] | null
+          status?: Database["public"]["Enums"]["request_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "punch_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "punch_requests_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "punch_requests_punch_id_fkey"
+            columns: ["punch_id"]
+            isOneToOne: false
+            referencedRelation: "punches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       punches: {
         Row: {
           accuracy_m: number | null
@@ -490,7 +614,36 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      absences_in_range: {
+        Args: { p_company_id: string; p_from: string; p_to: string }
+        Returns: {
+          absence_id: string
+          da_empresa: boolean
+          dia: string
+          full_name: string
+          kind: Database["public"]["Enums"]["absence_kind"]
+          membership_id: string
+          note: string
+        }[]
+      }
       accept_invitation: { Args: { p_token: string }; Returns: string }
+      add_missing_punch: {
+        Args: {
+          p_justification: string
+          p_membership_id: string
+          p_punched_at: string
+          p_type: Database["public"]["Enums"]["punch_type"]
+        }
+        Returns: string
+      }
+      adjust_punch: {
+        Args: {
+          p_justification: string
+          p_punch_id: string
+          p_punched_at: string
+        }
+        Returns: string
+      }
       allowed_punch_types: {
         Args: { p_membership_id: string; p_work_date: string }
         Returns: Database["public"]["Enums"]["punch_type"][]
@@ -531,6 +684,14 @@ export type Database = {
           p_name: string
           p_timezone?: string
         }
+        Returns: string
+      }
+      day_sequence_is_valid: {
+        Args: { p_membership_id: string; p_work_date: string }
+        Returns: boolean
+      }
+      decide_punch_request: {
+        Args: { p_aprovar: boolean; p_nota?: string; p_request_id: string }
         Returns: string
       }
       effective_punches: {
@@ -613,6 +774,20 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
           timezone: string
           trial_ends_at: string
+        }[]
+      }
+      punch_history: {
+        Args: { p_punch_id: string }
+        Returns: {
+          autor: string
+          efetivo: boolean
+          id: string
+          justification: string
+          origin: Database["public"]["Enums"]["punch_origin"]
+          punched_at: string
+          registrado_em: string
+          type: Database["public"]["Enums"]["punch_type"]
+          voided: boolean
         }[]
       }
       register_punch: {
@@ -723,13 +898,26 @@ export type Database = {
         }
         Returns: undefined
       }
+      void_punch: {
+        Args: { p_justification: string; p_punch_id: string }
+        Returns: string
+      }
     }
     Enums: {
+      absence_kind:
+        | "atestado"
+        | "ferias"
+        | "folga"
+        | "feriado"
+        | "falta_justificada"
+        | "outro"
       app_role: "dono" | "gerente" | "funcionario"
       member_status: "ativo" | "pendente" | "inativo"
       punch_method: "gps" | "wifi" | "ambos"
       punch_origin: "app" | "ajuste_manual" | "importacao"
       punch_type: "entrada" | "saida" | "intervalo_inicio" | "intervalo_fim"
+      request_kind: "inclusao" | "ajuste" | "anulacao"
+      request_status: "pendente" | "aprovada" | "recusada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -860,11 +1048,21 @@ export const Constants = {
   },
   public: {
     Enums: {
+      absence_kind: [
+        "atestado",
+        "ferias",
+        "folga",
+        "feriado",
+        "falta_justificada",
+        "outro",
+      ],
       app_role: ["dono", "gerente", "funcionario"],
       member_status: ["ativo", "pendente", "inativo"],
       punch_method: ["gps", "wifi", "ambos"],
       punch_origin: ["app", "ajuste_manual", "importacao"],
       punch_type: ["entrada", "saida", "intervalo_inicio", "intervalo_fim"],
+      request_kind: ["inclusao", "ajuste", "anulacao"],
+      request_status: ["pendente", "aprovada", "recusada"],
     },
   },
 } as const

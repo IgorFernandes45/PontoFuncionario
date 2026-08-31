@@ -11,6 +11,8 @@ const ITENS: Item[] = [
   { href: "/painel", label: "Painel", curto: "Painel", gestao: true },
   { href: "/equipe", label: "Equipe", curto: "Equipe", gestao: true },
   { href: "/escala", label: "Escala", curto: "Escala", gestao: true },
+  { href: "/ponto", label: "Ponto", curto: "Ponto", gestao: true },
+  { href: "/ausencias", label: "Ausências", curto: "Ausên.", gestao: true },
   { href: "/relatorios", label: "Relatórios", curto: "Relat.", gestao: true },
   {
     href: "/configuracoes/turnos",

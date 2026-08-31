@@ -2,6 +2,7 @@ import { requireWorkspace } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { hojeNaEmpresa } from "@/lib/datas";
 import Relogio, { type EstadoPonto } from "./relogio";
+import PedirCorrecao from "./pedir-correcao";
 
 export const metadata = { title: "Bater ponto · PontoEscala" };
 
@@ -51,11 +52,14 @@ export default async function BaterPontoPage() {
   }
 
   return (
-    <Relogio
-      estado={st}
-      timezone={active.timezone}
-      batidasDeHoje={(batidas ?? []) as Batida[]}
-    />
+    <>
+      <Relogio
+        estado={st}
+        timezone={active.timezone}
+        batidasDeHoje={(batidas ?? []) as Batida[]}
+      />
+      <PedirCorrecao hoje={hoje} />
+    </>
   );
 }
 

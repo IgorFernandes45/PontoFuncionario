@@ -3,7 +3,7 @@
 SaaS multi-tenant de gestão de escala e ponto eletrônico.
 Plano completo e roadmap: [`PontoEscala-Plano-Tecnico.md`](./PontoEscala-Plano-Tecnico.md).
 
-**Sprint atual: 5 — Ponto por GPS.** (Sprints 0 a 4 concluídas.)
+**Sprint atual: 6 — Correções e ausências.** (Sprints 0 a 5 concluídas.)
 
 ## Rodar localmente
 
@@ -66,6 +66,9 @@ npm run db:test
   próprio navegador consegue registrar um ponto que não deveria valer? Cobre
   raio, precisão de GPS, sequência, horário informado pelo cliente, e a
   ausência de qualquer caminho de escrita pelo cliente.
+- [`correcoes.test.sql`](./supabase/tests/database/correcoes.test.sql)
+  (Sprint 6) responde a outras duas: a correção altera o registro original?
+  (não pode) E a falta continua se confundindo com atestado? (não pode).
 
 ## E-mails de convite
 
