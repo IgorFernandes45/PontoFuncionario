@@ -131,6 +131,7 @@ export type Database = {
           cnpj: string | null
           created_at: string
           id: string
+          late_tolerance_minutes: number
           name: string
           plan: string
           timezone: string
@@ -140,6 +141,7 @@ export type Database = {
           cnpj?: string | null
           created_at?: string
           id?: string
+          late_tolerance_minutes?: number
           name: string
           plan?: string
           timezone?: string
@@ -149,6 +151,7 @@ export type Database = {
           cnpj?: string | null
           created_at?: string
           id?: string
+          late_tolerance_minutes?: number
           name?: string
           plan?: string
           timezone?: string
@@ -686,6 +689,27 @@ export type Database = {
         }
         Returns: string
       }
+      daily_report: {
+        Args: { p_company_id: string; p_from: string; p_to: string }
+        Returns: {
+          atraso_min: number
+          ausencia_tipo: Database["public"]["Enums"]["absence_kind"]
+          dia: string
+          entrada_prevista: string
+          entrada_real: string
+          full_name: string
+          intervalo_min: number
+          intervalo_presumido: boolean
+          membership_id: string
+          previsto_min: number
+          saida_real: string
+          shift_label: string
+          situacao: Database["public"]["Enums"]["day_status"]
+          tem_ajuste: boolean
+          trabalhado_min: number
+          turno_aberto: boolean
+        }[]
+      }
       day_sequence_is_valid: {
         Args: { p_membership_id: string; p_work_date: string }
         Returns: boolean
@@ -776,6 +800,24 @@ export type Database = {
           trial_ends_at: string
         }[]
       }
+      period_report: {
+        Args: { p_company_id: string; p_from: string; p_to: string }
+        Returns: {
+          atraso_total_min: number
+          atrasos: number
+          ausencias: number
+          dias_com_ajuste: number
+          dias_em_aberto: number
+          dias_previstos: number
+          dias_trabalhados: number
+          faltas: number
+          full_name: string
+          membership_id: string
+          previsto_min: number
+          saldo_min: number
+          trabalhado_min: number
+        }[]
+      }
       punch_history: {
         Args: { p_punch_id: string }
         Returns: {
@@ -789,6 +831,10 @@ export type Database = {
           type: Database["public"]["Enums"]["punch_type"]
           voided: boolean
         }[]
+      }
+      punch_work_date: {
+        Args: { p_membership_id: string; p_quando: string; p_timezone: string }
+        Returns: string
       }
       register_punch: {
         Args: {
@@ -828,6 +874,7 @@ export type Database = {
           work_date: string
         }[]
       }
+      safe_uuid: { Args: { p_texto: string }; Returns: string }
       schedule_coverage: {
         Args: { p_company_id: string; p_from: string; p_to: string }
         Returns: {
@@ -902,6 +949,16 @@ export type Database = {
         Args: { p_justification: string; p_punch_id: string }
         Returns: string
       }
+      worked_minutes: {
+        Args: { p_membership_id: string; p_work_date: string }
+        Returns: {
+          intervalo_min: number
+          primeira: string
+          trabalhado_min: number
+          turno_aberto: boolean
+          ultima: string
+        }[]
+      }
     }
     Enums: {
       absence_kind:
@@ -912,6 +969,13 @@ export type Database = {
         | "falta_justificada"
         | "outro"
       app_role: "dono" | "gerente" | "funcionario"
+      day_status:
+        | "trabalhado"
+        | "falta"
+        | "ausencia"
+        | "folga"
+        | "sem_escala"
+        | "em_aberto"
       member_status: "ativo" | "pendente" | "inativo"
       punch_method: "gps" | "wifi" | "ambos"
       punch_origin: "app" | "ajuste_manual" | "importacao"
@@ -1057,6 +1121,14 @@ export const Constants = {
         "outro",
       ],
       app_role: ["dono", "gerente", "funcionario"],
+      day_status: [
+        "trabalhado",
+        "falta",
+        "ausencia",
+        "folga",
+        "sem_escala",
+        "em_aberto",
+      ],
       member_status: ["ativo", "pendente", "inativo"],
       punch_method: ["gps", "wifi", "ambos"],
       punch_origin: ["app", "ajuste_manual", "importacao"],

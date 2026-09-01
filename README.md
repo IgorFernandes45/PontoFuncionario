@@ -3,7 +3,7 @@
 SaaS multi-tenant de gestão de escala e ponto eletrônico.
 Plano completo e roadmap: [`PontoEscala-Plano-Tecnico.md`](./PontoEscala-Plano-Tecnico.md).
 
-**Sprint atual: 6 — Correções e ausências.** (Sprints 0 a 5 concluídas.)
+**Sprint atual: 7 — Relatórios e espelho de ponto.** (Sprints 0 a 6 concluídas.)
 
 ## Rodar localmente
 
@@ -69,6 +69,10 @@ npm run db:test
 - [`correcoes.test.sql`](./supabase/tests/database/correcoes.test.sql)
   (Sprint 6) responde a outras duas: a correção altera o registro original?
   (não pode) E a falta continua se confundindo com atestado? (não pode).
+- [`relatorios.test.sql`](./supabase/tests/database/relatorios.test.sql)
+  (Sprint 7) monta os casos que a conta ingênua erra: turno que vira o dia,
+  intervalo não batido, atraso dentro da tolerância, e a diferença entre
+  falta, atestado e folga.
 - [`arquivos.test.sql`](./supabase/tests/database/arquivos.test.sql)
   cobre selfie e anexo. O caminho do arquivo é quem carrega a autorização, e
   nome de objeto no Storage é texto livre — então testa o caminho forjado, o
