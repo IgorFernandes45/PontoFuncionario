@@ -7,6 +7,7 @@ const ABAS = [
   { href: "/configuracoes/turnos", label: "Turnos", donoApenas: false },
   { href: "/configuracoes/unidades", label: "Unidades", donoApenas: false },
   { href: "/configuracoes/empresa", label: "Empresa", donoApenas: true },
+  { href: "/configuracoes/dados", label: "Dados", donoApenas: true },
 ];
 
 export default function Abas({ souDono }: { souDono: boolean }) {

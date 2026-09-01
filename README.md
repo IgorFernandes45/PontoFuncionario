@@ -3,7 +3,7 @@
 SaaS multi-tenant de gestão de escala e ponto eletrônico.
 Plano completo e roadmap: [`PontoEscala-Plano-Tecnico.md`](./PontoEscala-Plano-Tecnico.md).
 
-**Sprint atual: 7 — Relatórios e espelho de ponto.** (Sprints 0 a 6 concluídas.)
+**Sprint atual: 8 — Piloto: endurecer para uso real.** (Sprints 0 a 7 concluídas.)
 
 ## Rodar localmente
 
@@ -69,6 +69,9 @@ npm run db:test
 - [`correcoes.test.sql`](./supabase/tests/database/correcoes.test.sql)
   (Sprint 6) responde a outras duas: a correção altera o registro original?
   (não pode) E a falta continua se confundindo com atestado? (não pode).
+- [`piloto.test.sql`](./supabase/tests/database/piloto.test.sql)
+  (Sprint 8) cobre limite de requisição, importação em lote, fila de avisos e
+  as duas obrigações da LGPD — exportar tudo e apagar de verdade.
 - [`relatorios.test.sql`](./supabase/tests/database/relatorios.test.sql)
   (Sprint 7) monta os casos que a conta ingênua erra: turno que vira o dia,
   intervalo não batido, atraso dentro da tolerância, e a diferença entre
@@ -110,6 +113,32 @@ Para conferir as faixas reservadas da sua máquina:
 ```bash
 netsh interface ipv4 show excludedportrange protocol=tcp
 ```
+
+## Backup e restauração
+
+O Supabase hospedado faz backup diário automático, mas backup que nunca foi
+restaurado não é backup. O procedimento, para testar antes de colocar cliente:
+
+```bash
+npx supabase db dump --db-url "$DATABASE_URL" -f backup.sql
+```
+
+Restaurar num banco limpo e conferir que os testes passam contra ele:
+
+```bash
+psql "$DATABASE_URL_DESTINO" -f backup.sql
+npm run db:test
+```
+
+Os arquivos do Storage (selfies e anexos) **não** entram no dump do banco —
+precisam de cópia própria pela API de Storage.
+
+## Envio de e-mail
+
+Os avisos de mudança de escala ficam na tabela `outbox`. Sem
+`RESEND_API_KEY` e `EMAIL_REMETENTE` definidos, eles se acumulam e a tela em
+Configurações → Dados mostra quantos estão esperando — nada se perde, e o
+piloto roda sem e-mail. Com as duas variáveis, o botão passa a enviar.
 
 ## Fluxo de trabalho
 

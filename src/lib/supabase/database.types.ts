@@ -326,6 +326,53 @@ export type Database = {
           },
         ]
       }
+      outbox: {
+        Row: {
+          assunto: string
+          company_id: string
+          corpo: string
+          created_at: string
+          enviado_em: string | null
+          erro: string | null
+          id: string
+          para_email: string
+          status: Database["public"]["Enums"]["outbox_status"]
+          tentativas: number
+        }
+        Insert: {
+          assunto: string
+          company_id: string
+          corpo: string
+          created_at?: string
+          enviado_em?: string | null
+          erro?: string | null
+          id?: string
+          para_email: string
+          status?: Database["public"]["Enums"]["outbox_status"]
+          tentativas?: number
+        }
+        Update: {
+          assunto?: string
+          company_id?: string
+          corpo?: string
+          created_at?: string
+          enviado_em?: string | null
+          erro?: string | null
+          id?: string
+          para_email?: string
+          status?: Database["public"]["Enums"]["outbox_status"]
+          tentativas?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outbox_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       punch_requests: {
         Row: {
           company_id: string
@@ -500,6 +547,24 @@ export type Database = {
           },
         ]
       }
+      rate_events: {
+        Row: {
+          chave: string
+          created_at: string
+          id: number
+        }
+        Insert: {
+          chave: string
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          chave?: string
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
       schedule_entries: {
         Row: {
           company_id: string
@@ -657,11 +722,22 @@ export type Database = {
         Args: { cid: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      bulk_invite: {
+        Args: { p_company_id: string; p_pessoas: Json }
+        Returns: {
+          email: string
+          resultado: string
+        }[]
+      }
       can_manage_member: {
         Args: {
           p_company_id: string
           p_target_role: Database["public"]["Enums"]["app_role"]
         }
+        Returns: boolean
+      }
+      check_rate_limit: {
+        Args: { p_chave: string; p_janela_s: number; p_max: number }
         Returns: boolean
       }
       company_members: {
@@ -718,6 +794,10 @@ export type Database = {
         Args: { p_aprovar: boolean; p_nota?: string; p_request_id: string }
         Returns: string
       }
+      delete_company: {
+        Args: { p_company_id: string; p_confirmacao: string }
+        Returns: undefined
+      }
       effective_punches: {
         Args: { p_company_id: string; p_from: string; p_to: string }
         Returns: {
@@ -738,6 +818,7 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: number
       }
+      export_company_data: { Args: { p_company_id: string }; Returns: Json }
       haversine_m: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
@@ -800,6 +881,16 @@ export type Database = {
           trial_ends_at: string
         }[]
       }
+      operation_health: {
+        Args: { p_company_id: string }
+        Returns: {
+          avisos_na_fila: number
+          faltas_ontem: number
+          pedidos_pendentes: number
+          sem_escala_hoje: number
+          turnos_abertos_ontem: number
+        }[]
+      }
       period_report: {
         Args: { p_company_id: string; p_from: string; p_to: string }
         Returns: {
@@ -835,6 +926,10 @@ export type Database = {
       punch_work_date: {
         Args: { p_membership_id: string; p_quando: string; p_timezone: string }
         Returns: string
+      }
+      queue_schedule_notices: {
+        Args: { p_company_id: string; p_desde?: string }
+        Returns: number
       }
       register_punch: {
         Args: {
@@ -977,6 +1072,7 @@ export type Database = {
         | "sem_escala"
         | "em_aberto"
       member_status: "ativo" | "pendente" | "inativo"
+      outbox_status: "pendente" | "enviado" | "falhou"
       punch_method: "gps" | "wifi" | "ambos"
       punch_origin: "app" | "ajuste_manual" | "importacao"
       punch_type: "entrada" | "saida" | "intervalo_inicio" | "intervalo_fim"
@@ -1130,6 +1226,7 @@ export const Constants = {
         "em_aberto",
       ],
       member_status: ["ativo", "pendente", "inativo"],
+      outbox_status: ["pendente", "enviado", "falhou"],
       punch_method: ["gps", "wifi", "ambos"],
       punch_origin: ["app", "ajuste_manual", "importacao"],
       punch_type: ["entrada", "saida", "intervalo_inicio", "intervalo_fim"],

@@ -2,9 +2,16 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { ACTIVE_COMPANY_COOKIE } from "@/lib/auth";
+import { log, seguro } from "@/lib/log";
 
 const TIPOS = ["entrada", "saida", "intervalo_inicio", "intervalo_fim"] as const;
 type Tipo = (typeof TIPOS)[number];
+
+// Quinze tentativas por minuto por pessoa. Uma batida legítima leva duas ou
+// três; quinze é folga larga para quem está com o GPS ruim e insistindo, e
+// aperto para um script varrendo o mapa atrás do raio da unidade.
+const MAX_TENTATIVAS = 15;
+const JANELA_S = 60;
 
 /**
  * Único caminho de escrita de ponto.
@@ -35,8 +42,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ erro: "Tipo de batida inválido" }, { status: 400 });
   }
 
-  // A empresa ativa vem do cookie, mas quem confirma o vínculo é o banco:
-  // a consulta abaixo passa por RLS.
   const cookieStore = await cookies();
   const preferida = cookieStore.get(ACTIVE_COMPANY_COOKIE)?.value;
 
@@ -57,12 +62,27 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const admin = createAdminClient();
+
+  // O limite é por pessoa, não por IP: numa loja todo mundo sai pelo mesmo
+  // IP, e limitar por ele puniria a equipe inteira por causa de um.
+  const { data: permitido } = await admin.rpc("check_rate_limit", {
+    p_chave: `punch:${membership.id}`,
+    p_max: MAX_TENTATIVAS,
+    p_janela_s: JANELA_S,
+  });
+
+  if (permitido === false) {
+    log.aviso("punch.rate_limit", { membership: membership.id });
+    return NextResponse.json(
+      { erro: "Muitas tentativas seguidas. Espere um minuto e tente de novo." },
+      { status: 429 },
+    );
+  }
+
   const numero = (v: unknown) =>
     typeof v === "number" && Number.isFinite(v) ? v : null;
 
-  // service_role porque `authenticated` não tem execute em register_punch:
-  // o caminho de escrita é um só e passa por aqui.
-  const admin = createAdminClient();
   const { data, error } = await admin.rpc("register_punch", {
     p_membership_id: membership.id,
     p_type: tipo as Tipo,
@@ -79,10 +99,24 @@ export async function POST(request: NextRequest) {
   });
 
   if (error) {
-    // 23514 = check_violation: são as recusas de negócio (fora do raio, GPS
-    // impreciso, sequência). A mensagem do banco já é escrita para a pessoa.
-    const status = error.code === "23514" ? 422 : 400;
-    return NextResponse.json({ erro: error.message }, { status });
+    // 23514 = check_violation: recusa de negócio (fora do raio, GPS impreciso,
+    // sequência). Esperado, e a mensagem do banco já é escrita para a pessoa.
+    if (error.code === "23514") {
+      return NextResponse.json({ erro: error.message }, { status: 422 });
+    }
+
+    // Qualquer outra coisa é defeito, e defeito no registro de ponto precisa
+    // aparecer. Sem isto, a primeira notícia vem do funcionário que não
+    // conseguiu bater.
+    log.erro("punch.falhou", {
+      membership: membership.id,
+      codigo: error.code,
+      detalhe: seguro(error.message),
+    });
+    return NextResponse.json(
+      { erro: "Não foi possível registrar agora. Tente de novo em instantes." },
+      { status: 500 },
+    );
   }
 
   const resultado = Array.isArray(data) ? data[0] : data;

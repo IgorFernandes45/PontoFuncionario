@@ -27,6 +27,7 @@ const ITENS: Item[] = [
     gestao: false,
   },
   { href: "/bater-ponto", label: "Bater ponto", curto: "Ponto", gestao: false },
+  { href: "/ajuda", label: "Ajuda", curto: "Ajuda", gestao: false },
 ];
 
 function estaAtivo(href: string, pathname: string) {

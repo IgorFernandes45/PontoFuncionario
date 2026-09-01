@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABEL, type AppRole } from "@/lib/types";
 import ConviteForm from "./convite-form";
 import MembroLinha, { type Membro } from "./membro-linha";
+import ImportarEquipe from "./importar-equipe";
 import { cancelarConvite, reenviarConvite } from "./actions";
 
 export const metadata = { title: "Equipe · PontoEscala" };
@@ -40,6 +41,8 @@ export default async function EquipePage() {
       {/* Só o dono concede papel de gerente — a policy do banco recusaria
           um gerente tentando, e a UI não deve oferecer o que será negado. */}
       <ConviteForm podeConvidarGerente={active.role === "dono"} />
+
+      <ImportarEquipe />
 
       {pendentes.length > 0 && (
         <section className="mt-8">
