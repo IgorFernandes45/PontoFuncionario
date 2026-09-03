@@ -13,7 +13,10 @@ const ITENS: Item[] = [
   { href: "/escala", label: "Escala", curto: "Escala", gestao: true },
   { href: "/ponto", label: "Ponto", curto: "Ponto", gestao: true },
   { href: "/ausencias", label: "Ausências", curto: "Ausên.", gestao: true },
-  { href: "/relatorios", label: "Relatórios", curto: "Relat.", gestao: true },
+  // O funcionário vê o relatório dele: period_report() já devolve só a
+  // própria linha. Esconder o link daria a impressão de que ele não pode
+  // conferir as próprias horas.
+  { href: "/relatorios", label: "Relatórios", curto: "Relat.", gestao: false },
   {
     href: "/configuracoes/turnos",
     label: "Configurações",

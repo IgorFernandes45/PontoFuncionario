@@ -49,6 +49,13 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!user && !isPublic(pathname)) {
+    // Rota de API responde 401 em JSON. Redirecionar para a página de login
+    // devolveria HTML com status 200 para quem esperava dados — e um cliente
+    // não tem como distinguir isso de sucesso.
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ erro: "Não autenticado" }, { status: 401 });
+    }
+
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("proximo", pathname);

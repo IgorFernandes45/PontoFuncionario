@@ -4,12 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireManager } from "@/lib/auth";
 
-export type ResultadoImportacao = {
-  erro: string | null;
-  linhas: { email: string; resultado: string }[];
-};
-
-export const IMPORTACAO_VAZIA: ResultadoImportacao = { erro: null, linhas: [] };
+import type { ResultadoImportacao } from "./importacao-estado";
 
 type Pessoa = { nome: string; email: string; papel?: string };
 

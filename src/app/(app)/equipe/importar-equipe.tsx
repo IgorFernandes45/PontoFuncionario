@@ -2,10 +2,8 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
-import {
-  importarEquipe,
-  IMPORTACAO_VAZIA,
-} from "./importar-actions";
+import { importarEquipe } from "./importar-actions";
+import { IMPORTACAO_VAZIA } from "./importacao-estado";
 
 const OK = new Set(["convidado"]);
 

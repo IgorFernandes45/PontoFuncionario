@@ -13,7 +13,9 @@
     "db:test": "supabase test db",
     "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
     "typecheck": "tsc --noEmit",
-    "env:local": "node scripts/setup-env.mjs"
+    "env:local": "node scripts/setup-env.mjs",
+    "seed:demo": "node scripts/seed-demo.mjs",
+    "verificar": "node scripts/verificar.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",

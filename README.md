@@ -114,6 +114,27 @@ Para conferir as faixas reservadas da sua máquina:
 netsh interface ipv4 show excludedportrange protocol=tcp
 ```
 
+## Testar com dados de verdade
+
+Os testes pgTAP provam as regras no banco. Para ver o sistema funcionando com
+uma operação inteira — seis pessoas, dois turnos, duas unidades, 30 dias de
+ponto com faltas, atrasos, turnos esquecidos e atestados:
+
+```bash
+npm run seed:demo
+```
+
+Depois, com o `npm run dev` de pé noutro terminal, a bateria de ponta a ponta
+— sessão, guardas por papel, telas, números do relatório, recusas do ponto,
+isolamento entre empresas e LGPD:
+
+```bash
+npm run verificar
+```
+
+Ela sobe sessão pelo mesmo caminho do magic link e conversa por HTTP com o
+app: é o que os testes de banco não alcançam.
+
 ## Backup e restauração
 
 O Supabase hospedado faz backup diário automático, mas backup que nunca foi
