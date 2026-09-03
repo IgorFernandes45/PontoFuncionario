@@ -95,7 +95,7 @@ begin
     raise exception 'Membro não encontrado' using errcode = 'no_data_found';
   end if;
 
-  if public.auth_role(v_company) not in ('dono','gerente') then
+  if not public.is_manager(v_company) then
     raise exception 'Você não pode alterar a escala'
       using errcode = 'insufficient_privilege';
   end if;
@@ -150,7 +150,7 @@ begin
     raise exception 'Membro não encontrado' using errcode = 'no_data_found';
   end if;
 
-  if public.auth_role(v_company) not in ('dono','gerente') then
+  if not public.is_manager(v_company) then
     raise exception 'Você não pode alterar a escala'
       using errcode = 'insufficient_privilege';
   end if;

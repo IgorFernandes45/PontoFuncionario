@@ -212,7 +212,7 @@ declare
   v_uid uuid := auth.uid();
   v_old public.companies%rowtype;
 begin
-  if public.auth_role(p_company_id) <> 'dono' then
+  if not public.is_owner(p_company_id) then
     raise exception 'Só o dono altera a configuração da empresa'
       using errcode = 'insufficient_privilege';
   end if;

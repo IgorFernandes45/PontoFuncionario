@@ -112,7 +112,7 @@ declare
   v_empresa text;
   r record;
 begin
-  if public.auth_role(p_company_id) not in ('dono','gerente') then
+  if not public.is_manager(p_company_id) then
     raise exception 'Sem permissão' using errcode = 'insufficient_privilege';
   end if;
 
@@ -171,7 +171,7 @@ as $$
 declare
   v_dados jsonb;
 begin
-  if public.auth_role(p_company_id) <> 'dono' then
+  if not public.is_owner(p_company_id) then
     raise exception 'Só o dono exporta os dados da empresa'
       using errcode = 'insufficient_privilege';
   end if;
@@ -244,7 +244,7 @@ as $$
 declare
   v_nome text;
 begin
-  if public.auth_role(p_company_id) <> 'dono' then
+  if not public.is_owner(p_company_id) then
     raise exception 'Só o dono apaga a empresa'
       using errcode = 'insufficient_privilege';
   end if;
@@ -284,7 +284,7 @@ declare
   v_nome   text;
   v_papel  public.app_role;
 begin
-  if public.auth_role(p_company_id) not in ('dono','gerente') then
+  if not public.is_manager(p_company_id) then
     raise exception 'Sem permissão para convidar' using errcode = 'insufficient_privilege';
   end if;
 

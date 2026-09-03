@@ -33,6 +33,35 @@ as $$
   limit 1;
 $$;
 
+-- `auth_role()` devolve NULL para quem nao e membro da empresa. Isso e correto
+-- como resposta, mas venenoso como guarda: em SQL, `NULL <> 'dono'` e
+-- `NULL not in ('dono','gerente')` avaliam como NULL, nao como verdadeiro, e um
+-- `if` com condicao NULL nao dispara. Uma guarda escrita assim deixa passar
+-- justamente quem esta mais de fora.
+--
+-- Estas duas respondem em booleano e nunca devolvem NULL. Toda guarda de papel
+-- usa uma delas -- comparar `auth_role()` direto dentro de um `if` e erro.
+-- (Em policy nao ha esse risco: o RLS so libera quando a expressao da TRUE.)
+create or replace function public.is_manager(p_company_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select coalesce(public.auth_role(p_company_id) in ('dono','gerente'), false);
+$$;
+
+create or replace function public.is_owner(p_company_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select coalesce(public.auth_role(p_company_id) = 'dono', false);
+$$;
+
 -- Ids de membership do proprio usuario (usado por punches na Sprint 4).
 create or replace function public.auth_membership_ids()
 returns setof uuid
@@ -52,6 +81,10 @@ revoke all on function public.auth_membership_ids() from public, anon;
 grant execute on function public.auth_company_ids()    to authenticated;
 grant execute on function public.auth_role(uuid)       to authenticated;
 grant execute on function public.auth_membership_ids() to authenticated;
+revoke all on function public.is_manager(uuid) from public, anon;
+revoke all on function public.is_owner(uuid)   from public, anon;
+grant execute on function public.is_manager(uuid) to authenticated, service_role;
+grant execute on function public.is_owner(uuid)   to authenticated, service_role;
 
 -- ---------- ATIVACAO ----------
 alter table public.companies   enable row level security;

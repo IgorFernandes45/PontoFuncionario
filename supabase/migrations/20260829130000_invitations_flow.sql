@@ -191,7 +191,7 @@ as $$
 declare
   v_n integer;
 begin
-  if public.auth_role(p_company_id) not in ('dono','gerente') then
+  if not public.is_manager(p_company_id) then
     raise exception 'Sem permissão' using errcode = 'insufficient_privilege';
   end if;
 

@@ -104,7 +104,7 @@ begin
     raise exception 'Batida não encontrada' using errcode = 'no_data_found';
   end if;
 
-  if public.auth_role(v_p.company_id) not in ('dono','gerente') then
+  if not public.is_manager(v_p.company_id) then
     raise exception 'Só quem administra corrige ponto'
       using errcode = 'insufficient_privilege';
   end if;
@@ -169,7 +169,7 @@ begin
     raise exception 'Batida não encontrada' using errcode = 'no_data_found';
   end if;
 
-  if public.auth_role(v_p.company_id) not in ('dono','gerente') then
+  if not public.is_manager(v_p.company_id) then
     raise exception 'Só quem administra anula ponto'
       using errcode = 'insufficient_privilege';
   end if;
@@ -231,7 +231,7 @@ begin
     raise exception 'Membro não encontrado' using errcode = 'no_data_found';
   end if;
 
-  if public.auth_role(v_m.company_id) not in ('dono','gerente') then
+  if not public.is_manager(v_m.company_id) then
     raise exception 'Só quem administra inclui ponto'
       using errcode = 'insufficient_privilege';
   end if;
@@ -420,7 +420,7 @@ begin
     raise exception 'Solicitação não encontrada' using errcode = 'no_data_found';
   end if;
 
-  if public.auth_role(v_r.company_id) not in ('dono','gerente') then
+  if not public.is_manager(v_r.company_id) then
     raise exception 'Só quem administra decide solicitação'
       using errcode = 'insufficient_privilege';
   end if;
